@@ -1,7 +1,7 @@
 import mysql.connector
 from datetime import datetime
 
-# Database connection
+#Database connection
 db = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -11,8 +11,8 @@ db = mysql.connector.connect(
 
 cursor = db.cursor()
 
-'''# Add initial data to the tables
-# Add initial books
+'''#Adding initial data to the tables
+#Adding initial books
 books = [
     ("Harry Potter and the Sorcerer's Stone", "J.K. Rowling", 5),
     ("The Hobbit", "J.R.R. Tolkien", 3),
@@ -22,7 +22,7 @@ books = [
 ] '''
 
 '''for book in books:
-    # Check if the book already exists
+    #Checking if the book already exists
     cursor.execute("SELECT * FROM books WHERE title = %s", (book[0],))
     if cursor.fetchone() is None:  # If the book does not exist
         cursor.execute('''
@@ -46,7 +46,7 @@ books = [
 #         VALUES (%s, %s)
 #     ''', member) '''
 
-''' Add initial transactions (borrowing books)
+''' Adding initial transactions (borrowing books)
 transactions = [
     (1, 1, '2024-11-01'),  # Alice borrowed "Harry Potter"
     (2, 2, '2024-11-05'),  # Bob borrowed "The Hobbit"
@@ -59,7 +59,7 @@ for transaction in transactions:
        # VALUES (%s, %s, %s)
     #''', transaction)
 
-'''# Commit all changes to the database
+'''#Committing all changes to the database
 db.commit()
 
 print("Initial data has been inserted into the tables.") '''
@@ -82,7 +82,7 @@ db.commit()
 print("Book updated successfully.") '''
 
 '''#delete
-# Delete transactions related to the book first
+#Deleting transactions related to the book first
 cursor.execute('''
    # DELETE t FROM transactions t
    # JOIN books b ON t.book_id = b.book_id
@@ -91,7 +91,7 @@ cursor.execute('''
 db.commit()
 
 
-# Then delete the book
+#Then delete the book
 cursor.execute('''
    # DELETE FROM books
    # WHERE title = %s
@@ -124,12 +124,12 @@ else:
     print("Invalid choice.")
 
 '''
-# Add a new member
+#Adding a new member
 def add_member():
     name = input("Enter member name: ")
     email = input("Enter member email: ")
 
-    # Check if email already exists in the members table
+    #Check if email already exists in the members table
     cursor.execute("SELECT * FROM members WHERE email = %s", (email,))
     existing_member = cursor.fetchone()
     
@@ -144,7 +144,7 @@ def add_member():
         ''', (name, email))
         db.commit()
 
-        # Retrieve the auto-generated member_id
+        #Retrieve the auto-generated member_id
         member_id = cursor.lastrowid
         print(f"Member added successfully! Your Member ID is {member_id}. Please note it for future use.")
     except mysql.connector.Error as err:
@@ -152,10 +152,10 @@ def add_member():
 
 
 
-# Borrow a book
+#Borrowing a book
 def borrow_book():
     try:
-        # Display all books with available copies
+        #Display all books with available copies
         cursor.execute("SELECT book_id, title, author, available_copies FROM books WHERE available_copies > 0")
         books = cursor.fetchall()
         
@@ -167,25 +167,25 @@ def borrow_book():
         for book in books:
             print(f"ID: {book[0]}, Title: {book[1]}, Author: {book[2]}, Available Copies: {book[3]}")
 
-        # Prompt user for inputs
+        #Prompt user for inputs
         book_id = int(input("\nEnter the Book ID of the book you want to borrow: "))
         member_id = int(input("Enter your Member ID: "))
 
-        # Validate member ID
+        #Validate member ID
         cursor.execute("SELECT * FROM members WHERE member_id = %s", (member_id,))
         member = cursor.fetchone()
         if not member:
             print("Member ID not found. Please try again.")
             return
 
-        # Check if the selected book exists and is available
+        #Check if the selected book exists and is available
         cursor.execute("SELECT * FROM books WHERE book_id = %s AND available_copies > 0", (book_id,))
         book = cursor.fetchone()
         if not book:
             print("Book ID not found or the book is no longer available.")
             return
 
-        # Proceed with borrowing
+        #Proceed with borrowing
         borrow_date = datetime.now().date()
         cursor.execute('''
             INSERT INTO transactions (book_id, member_id, borrow_date)
@@ -206,20 +206,20 @@ def borrow_book():
     except ValueError:
         print("Invalid input. Please enter numeric IDs.")
 
-# Return a book
+#Returning a book
 def return_book():
     try:
-        # Prompt the user for their Member ID
+        #Prompt the user for their Member ID
         member_id = int(input("Enter your Member ID: "))
 
-        # Validate the Member ID
+        #Validate the Member ID
         cursor.execute("SELECT * FROM members WHERE member_id = %s", (member_id,))
         member = cursor.fetchone()
         if not member:
             print("Member ID not found. Please try again.")
             return
 
-        # Fetch books borrowed by the member that have not been returned
+        #Fetch books borrowed by the member that have not been returned
         cursor.execute('''
             SELECT t.transaction_id, b.book_id, b.title, b.author, t.borrow_date
             FROM transactions t
@@ -232,21 +232,21 @@ def return_book():
             print("You have no books to return.")
             return
 
-        # Display the borrowed books
+        #Display the borrowed books
         print("\nBooks you have borrowed:")
         for book in borrowed_books:
             print(f"Transaction ID: {book[0]}, Book ID: {book[1]}, Title: {book[2]}, Author: {book[3]}, Borrow Date: {book[4]}")
 
-        # Prompt the user to select a transaction to return
+        #Prompt the user to select a transaction to return
         transaction_id = int(input("\nEnter the Transaction ID of the book you are returning: "))
 
-        # Check if the selected Transaction ID is valid
+        #Check if the selected Transaction ID is valid
         valid_transaction_ids = [book[0] for book in borrowed_books]
         if transaction_id not in valid_transaction_ids:
             print("Invalid Transaction ID. Please try again.")
             return
 
-        # Record the return date and update available copies
+        #Record the return date and update available copies
         return_date = datetime.now().date()
         cursor.execute('''
             UPDATE transactions
@@ -268,7 +268,7 @@ def return_book():
     except ValueError:
         print("Invalid input. Please enter numeric values.")
 
-# Search for books
+#Search feature to search for books
 def search_books():
     search_query = input("Enter book title or author: ").lower()  # Convert user input to lowercase
     cursor.execute(''' 
@@ -299,7 +299,7 @@ def view_members():
     else:
         print("No members found.")
 
-# Look up member ID by email
+#Look up member ID by email
 def lookup_member_id():
     email = input("Enter your email to find your Member ID: ")
     cursor.execute('''
@@ -312,7 +312,7 @@ def lookup_member_id():
     else:
         print("No member found with that email.")
 
-# Command menu loop
+#Command menu loop
 while True:
     print("\nLibrary Management System")
     print("1. Add Book")
